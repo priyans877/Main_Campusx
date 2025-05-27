@@ -11,6 +11,8 @@ model = ChatOpenAI(
     api_key=os.getenv("OPENAI_API_KEY"),
 )
 
+
+# Adding Messages , By using Simple SystemMessage, HumanMessage, and AIMessage , static messages
 messages = [
     SystemMessage(content="You are a helpful assistant that provides information and answers questions to the best of your ability. You should be polite and concise in your responses."),
     HumanMessage(content="What is the capital of France?"),
