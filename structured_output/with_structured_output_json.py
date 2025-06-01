@@ -1,28 +1,62 @@
 from langchain_openai import ChatOpenAI
 from dotenv import load_dotenv
-from typing import TypedDict , Annotated , Optional
+from typing import TypedDict , Annotated , Optional , Literal
 load_dotenv()
 import os
-
+from pydantic import BaseModel, Field 
 
 # importing model insitialization from langchain_openai
 model = ChatOpenAI(
     model = 'openai/gpt-4.1-nano',
     base_url="https://openrouter.ai/api/v1",
     api_key=os.getenv("OPENAI_API_KEY"),
-)
+)   
 
-# Adding dynamic command base  prompt conditionby adding annotated function
-class review(TypedDict):
-    key_theme : Annotated[list[str] , "What are the key themes in the review? List them in bullet points."]
-    summary : Annotated[str , "A brief summary of review "]
-    battery : Annotated[Optional[str] , "what is the battery life of the product? found in the review"]
-    screen : Annotated[Optional[str] , "what is the bdetail menntioned about the screen? found in the review"]
-    sentiment : Annotated[str , "Give a sentiment analysis of the review, either positive, negative, or neutral."]
-    cons : Annotated[Optional[list[str]] , "What are the cons of the product? if availble then give otherwise None"]
-    pros : Annotated[Optional[list[str]] , "What are the pros of the product? List them in bullet points."]
+json_schema = {
+  "title": "Review",
+  "type": "object",
+  "properties": {
+    "key_themes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Write down all the key themes discussed in the review in a list"
+    },
+    "summary": {
+      "type": "string",
+      "description": "A brief summary of the review"
+    },
+    "sentiment": {
+      "type": "string",
+      "enum": ["pos", "neg"],
+      "description": "Return sentiment of the review either negative, positive or neutral"
+    },
+    "pros": {
+      "type": ["array", "null"],
+      "items": {
+        "type": "string"
+      },
+      "description": "Write down all the pros inside a list"
+    },
+    "cons": {
+      "type": ["array", "null"],
+      "items": {
+        "type": "string"
+      },
+      "description": "Write down all the cons inside a list"
+    },
+    "name": {
+      "type": ["string", "null"],
+      "description": "Write the name of the reviewer"
+    }
+  },
+  "required": ["key_themes", "summary", "sentiment"]
+}
 
-structured_model = model.with_structured_output(review)
+
+structured_model = model.with_structured_output(json_schema)
+
 
 
 result = structured_model.invoke("""I've been using the iPhone 16 Pro Max for over a month, and I'm blown away by its sheer performance, stunning display, and revolutionary camera capabilities. Apple has truly outdone themselves with this flagship device.
@@ -58,16 +92,12 @@ The iPhone 16 Pro Max is an exceptional device that justifies its premium price.
 *Recommendation:*
 
 If you're due for an upgrade or seeking the ultimate smartphone experience, the iPhone 16 Pro Max is the perfect choice.
-68 people found this helpful
+68 people found this helpful :- Priyanshu Kumar Choubey
 """)
 
 
 
 print(result)
-print("--------------------------")
-print("Summary :-",result["summary"])
-print("Cons :-",result["cons"])
-print("Pros :-",result["pros"])
-print("Key Theme :-",result["key_theme"])   
+# print(result.model_dump_json(indent = 2))
 
 

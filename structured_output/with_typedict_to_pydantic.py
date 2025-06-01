@@ -1,9 +1,9 @@
 from langchain_openai import ChatOpenAI
 from dotenv import load_dotenv
-from typing import TypedDict , Annotated , Optional
+from typing import TypedDict , Annotated , Optional , Literal
 load_dotenv()
 import os
-
+from pydantic import BaseModel, Field 
 
 # importing model insitialization from langchain_openai
 model = ChatOpenAI(
@@ -12,15 +12,20 @@ model = ChatOpenAI(
     api_key=os.getenv("OPENAI_API_KEY"),
 )
 
-# Adding dynamic command base  prompt conditionby adding annotated function
-class review(TypedDict):
-    key_theme : Annotated[list[str] , "What are the key themes in the review? List them in bullet points."]
-    summary : Annotated[str , "A brief summary of review "]
-    battery : Annotated[Optional[str] , "what is the battery life of the product? found in the review"]
-    screen : Annotated[Optional[str] , "what is the bdetail menntioned about the screen? found in the review"]
-    sentiment : Annotated[str , "Give a sentiment analysis of the review, either positive, negative, or neutral."]
-    cons : Annotated[Optional[list[str]] , "What are the cons of the product? if availble then give otherwise None"]
-    pros : Annotated[Optional[list[str]] , "What are the pros of the product? List them in bullet points."]
+# Adding dynamic command base  prompt conditionby adding annotated function , now replacing the typedict parser into pydantic model parser format
+class review(BaseModel):
+    key_theme : list[str] = Field(description="What are the key themes in the review? List them in bullet points.")
+    
+    summary : str  = Field(description="A brief summary of review ")
+    
+    battery : Optional[str] = Field(default = None, description="what is the battery life of the product? found in the review")
+    
+    screen : Optional[str] = Field(default= None , description="what is the bdetail mentioned about the screen? found in the review")
+    sentiment : Literal["Positive" ,"Negative"] = Field(description="Give a sentiment analysis of the review, either positive, negative, or neutral.")
+    
+    cons :Optional[list[str]] = Field(defualt = None , description="What are the cons of the product? if availble then give otherwise None")
+    pros : Optional[list[str]] = Field(default = None , description = "What are the pros of the product? List them in bullet points.")
+    name  : Optional[str] = Field(default = None , description = "Name of the Reviewer, if available in the review text, otherwise None")
 
 structured_model = model.with_structured_output(review)
 
@@ -58,16 +63,12 @@ The iPhone 16 Pro Max is an exceptional device that justifies its premium price.
 *Recommendation:*
 
 If you're due for an upgrade or seeking the ultimate smartphone experience, the iPhone 16 Pro Max is the perfect choice.
-68 people found this helpful
+68 people found this helpful :- Priyanshu Kumar Choubey
 """)
 
 
 
 print(result)
-print("--------------------------")
-print("Summary :-",result["summary"])
-print("Cons :-",result["cons"])
-print("Pros :-",result["pros"])
-print("Key Theme :-",result["key_theme"])   
+print(result.model_dump_json(indent = 2))
 
 
