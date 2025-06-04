@@ -1,4 +1,4 @@
-from langchain_openai import ChatOpenAI
+# from langchain_openai import ChatOpenAI
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain.chains import SequentialChain
@@ -8,7 +8,7 @@ from typing import Literal
 from langchain_core.output_parsers import PydanticOutputParser
 import os
 from langchain.schema.runnable import RunnableParallel , RunnableBranch , RunnableLambda
-
+from model import chatai
 load_dotenv()
 
 # Schema 
@@ -19,11 +19,6 @@ class Feedback(BaseModel):
 
 output_parser = PydanticOutputParser(pydantic_object = Feedback)
 
-model = ChatOpenAI(
-    model = 'openai/gpt-4.1-nano',
-    base_url="https://openrouter.ai/api/v1",
-    api_key=os.getenv("OPENAI_API_KEY"),
-)
 
 parser = StrOutputParser()
 
@@ -45,11 +40,11 @@ prompt3 = PromptTemplate(
     input_variables=['feedback']
 )
 
-classify_chain = prompt1 | model | output_parser
+classify_chain = prompt1 | chatai | output_parser
 
-positive_chain = prompt2 | model | parser
+positive_chain = prompt2 | chatai | parser
 
-negative_chain = prompt3 | model | parser
+negative_chain = prompt3 | chatai | parser
 
 branch = RunnableBranch(
     (lambda x:x.sentiment == 'positive' , positive_chain),
