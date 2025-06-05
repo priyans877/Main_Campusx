@@ -23,7 +23,7 @@ report_gen = RunnableSequence(prompt1, chatai, parser)
 branch_chain = RunnableBranch(
     (lambda x: len(x.split()) > 200  , RunnableSequence(prompt2 , chatai , parser)),
     RunnablePassthrough(),
-    #RunnableLambda(lambda x: "Your Content Limit Exceeds {}".format(len(x.split())))
+    #RunnableLambda(lambda x: "Your Co ntent Limit Exceeds {}".format(len(x.split())))
 )
 
 final_chain = RunnableSequence(
